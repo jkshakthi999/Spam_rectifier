@@ -1,0 +1,10 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\SHAKTHI J K\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/*.pyc": true
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell"
+}

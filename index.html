@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spam Rectifier - AI Email & Document Spam Analyzer</title>
+
+    <!-- PWA Settings (Installable App / APK) -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0e1526">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Tesseract OCR for Image Screen Reader -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <div class="app-layout">
+        <!-- Header & App Install Bar -->
+        <header class="navbar">
+            <div class="navbar-brand">
+                <div class="shield-logo">
+                    <span class="shield-icon">🛡️</span>
+                    <span class="radar-ping"></span>
+                </div>
+                <div>
+                    <div class="brand-title">Spam Rectifier <span class="ai-badge">APP</span></div>
+                    <div class="brand-tagline">AI-Powered Email, Document & Text Spam Analyzer</div>
+                </div>
+            </div>
+
+            <!-- Install App Button (1-Click Desktop & APK Installation) -->
+            <div class="navbar-actions">
+                <button type="button" class="btn-install-app" id="btnInstallPwa" title="Install Spam Rectifier App">
+                    <span class="install-icon">📲</span>
+                    <span class="install-label">Install App</span>
+                    <span class="install-badge">APP</span>
+                </button>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python 3</span>
+                    <span class="tech-tag">Scikit-Learn</span>
+                    <span class="tech-tag">SVM (97.9%)</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Left Panel: Multi-Format Upload Studio -->
+            <section class="glass-panel input-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <span class="panel-step">01</span>
+                        <div>
+                            <h2>Upload & Select Format</h2>
+                            <p class="panel-desc">Select format: Text, PDF document, Email (.eml), or Image screenshot</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Format Selection Tabs -->
+                <div class="format-tabs" role="tablist">
+                    <button class="tab-btn active" data-tab="tab-text" type="button">
+                        <span class="tab-icon">✍️</span>
+                        <span class="tab-label">Text Format</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-pdf" type="button">
+                        <span class="tab-icon">📄</span>
+                        <span class="tab-label">PDF Format</span>
+                        <span class="format-chip">.PDF</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-email" type="button">
+                        <span class="tab-icon">✉️</span>
+                        <span class="tab-label">Email Format</span>
+                        <span class="format-chip">.EML / .MSG</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-image" type="button">
+                        <span class="tab-icon">🖼️</span>
+                        <span class="tab-label">Image Format</span>
+                        <span class="format-chip">OCR</span>
+                    </button>
+                </div>
+
+                <!-- FORMAT 1: Direct Text -->
+                <div id="tab-text" class="tab-content active">
+                    <div class="quick-samples">
+                        <span class="samples-title">⚡ Quick Test Scenarios:</span>
+                        <div class="sample-pills">
+                            <button type="button" class="sample-pill prompt-sample" data-sample="Congratulations! You won ₹10 lakh">
+                                🎯 ₹10 Lakh Winner
+                            </button>
+                            <button type="button" class="sample-pill" data-sample="URGENT: Your SBI account has been suspended due to pending KYC. Click http://sbi-kyc-verify.com to update immediately!">
+                                🚨 KYC Phishing Alert
+                            </button>
+                            <button type="button" class="sample-pill" data-sample="Earn ₹50,000 every week by just typing from home! Zero investment. Call +919876543210 to claim spot.">
+                                💼 Work From Home Scam
+                            </button>
+                            <button type="button" class="sample-pill" data-sample="Hi team, please find attached the meeting slides for our sprint review tomorrow at 10 AM.">
+                                📁 Project Review (Ham)
+                            </button>
+                            <button type="button" class="sample-pill" data-sample="Your OTP for transaction of ₹1,500 at Amazon is 492810. Do not share this OTP with anyone.">
+                                🔑 Bank OTP (Ham)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="textarea-container">
+                        <div class="label-row">
+                            <label for="emailTextInput" class="input-label">Email / Text Content:</label>
+                            <button type="button" class="btn-upload-subtext" onclick="document.getElementById('txtFileInput').click()">
+                                📂 Or Upload .TXT File
+                            </button>
+                            <input type="file" id="txtFileInput" accept=".txt" class="file-input-hidden">
+                        </div>
+                        <textarea 
+                            id="emailTextInput" 
+                            rows="6" 
+                            placeholder="Type or paste email text here... (e.g. 'Congratulations! You won ₹10 lakh')"
+                        >Congratulations! You won ₹10 lakh</textarea>
+                    </div>
+                </div>
+
+                <!-- FORMAT 2: PDF Document -->
+                <div id="tab-pdf" class="tab-content">
+                    <div class="dropzone" id="pdfDropzone">
+                        <input type="file" id="pdfFileInput" accept=".pdf" class="file-input-hidden">
+                        <div class="dropzone-inner" id="pdfDropzonePrompt">
+                            <div class="dropzone-icon">📕</div>
+                            <h3>Upload PDF Email / Document</h3>
+                            <p>Drag & drop <strong>.PDF</strong> file or click to browse</p>
+                            <button type="button" class="browse-btn" onclick="document.getElementById('pdfFileInput').click()">
+                                Select PDF Document
+                            </button>
+                        </div>
+                        <div class="doc-info-card hidden" id="pdfInfoCard">
+                            <div class="doc-info-header">
+                                <span class="doc-icon">📑</span>
+                                <div class="doc-meta-text">
+                                    <strong id="pdfFilename">document.pdf</strong>
+                                    <small id="pdfSize">PDF Document</small>
+                                </div>
+                                <button type="button" class="btn-remove-file" id="btnRemovePdf">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMAT 3: Email File (.EML / .MSG) -->
+                <div id="tab-email" class="tab-content">
+                    <div class="dropzone" id="emailDropzone">
+                        <input type="file" id="emailFileInput" accept=".eml, .msg" class="file-input-hidden">
+                        <div class="dropzone-inner" id="emailDropzonePrompt">
+                            <div class="dropzone-icon">📧</div>
+                            <h3>Upload Raw Email Message File</h3>
+                            <p>Drag & drop <strong>.EML</strong> or <strong>.MSG</strong> (RFC 822 format)</p>
+                            <button type="button" class="browse-btn" onclick="document.getElementById('emailFileInput').click()">
+                                Select Email File
+                            </button>
+                        </div>
+                        <div class="doc-info-card hidden" id="emailInfoCard">
+                            <div class="doc-info-header">
+                                <span class="doc-icon">✉️</span>
+                                <div class="doc-meta-text">
+                                    <strong id="emailFilename">message.eml</strong>
+                                    <small id="emailMeta">RFC 822 Email File</small>
+                                </div>
+                                <button type="button" class="btn-remove-file" id="btnRemoveEmail">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMAT 4: Image Screenshot (with OCR) -->
+                <div id="tab-image" class="tab-content">
+                    <div class="dropzone" id="imageDropzone">
+                        <input type="file" id="imageFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" class="file-input-hidden">
+                        <div class="dropzone-inner" id="imageDropzonePrompt">
+                            <div class="dropzone-icon">📷</div>
+                            <h3>Upload Email Screenshot / Image</h3>
+                            <p>Supports <strong>PNG, JPG, WEBP</strong> (Scanned via Tesseract OCR)</p>
+                            <button type="button" class="browse-btn" onclick="document.getElementById('imageFileInput').click()">
+                                Select Screenshot Image
+                            </button>
+                        </div>
+                        <div class="image-preview-box hidden" id="imagePreviewBox">
+                            <div class="preview-wrapper">
+                                <img id="previewImg" src="" alt="Screenshot">
+                                <div class="scanning-laser hidden" id="scanningLaser"></div>
+                            </div>
+                            <div class="ocr-status-card">
+                                <div class="ocr-spinner-row">
+                                    <span class="ocr-spinner"></span>
+                                    <span class="ocr-status-text" id="ocrStatusText">Ready to extract text...</span>
+                                </div>
+                                <div class="ocr-progress-bg">
+                                    <div class="ocr-progress-fill" id="ocrProgressFill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Extracted Text Inspector -->
+                <div class="extracted-text-box">
+                    <div class="extracted-header">
+                        <span class="input-label">Extracted Content to Analyze:</span>
+                        <span class="char-counter" id="charCounter">34 characters</span>
+                    </div>
+                    <div class="text-preview-scroll" id="activeContentPreview">
+                        Congratulations! You won ₹10 lakh
+                    </div>
+                </div>
+
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button type="button" class="btn-primary" id="btnAnalyze">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">Check & Analyze Spam</span>
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnClear">
+                        Clear
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Overall Percentage & Condition Analysis -->
+            <section class="glass-panel results-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <span class="panel-step">02</span>
+                        <div>
+                            <h2>Analysis & Overall Percentage</h2>
+                            <p class="panel-desc">Condition breakdown and overall spam probability score</p>
+                        </div>
+                    </div>
+                    <span class="active-algo-tag" id="activeAlgoTag">AI Engine • 97.9% Acc</span>
+                </div>
+
+                <!-- Idle State -->
+                <div class="results-idle" id="resultsIdle">
+                    <div class="idle-radar">
+                        <div class="radar-circle circle-1"></div>
+                        <div class="radar-circle circle-2"></div>
+                        <span class="radar-center-icon">🎯</span>
+                    </div>
+                    <h3>Ready for Spam Analysis</h3>
+                    <p>Select your format on the left, upload or enter email text, then click <strong>Check & Analyze Spam</strong>.</p>
+                </div>
+
+                <!-- Scanning Animation -->
+                <div class="results-scanning hidden" id="resultsScanning">
+                    <div class="scanning-scanner">
+                        <div class="scanner-sweep"></div>
+                        <span class="scanner-icon">🔍</span>
+                    </div>
+                    <h3>Evaluating Spam Conditions...</h3>
+                    <p>Checking currency signals • Urgency heuristics • ML probabilities</p>
+                </div>
+
+                <!-- Populated Verdict & Overall Percentage -->
+                <div class="results-verdict hidden" id="resultsVerdict">
+                    <!-- Overall Percentage Hero Banner -->
+                    <div class="percentage-hero-card" id="percentageHeroCard">
+                        <div class="circle-gauge-wrap">
+                            <svg class="circle-gauge" viewBox="0 0 120 120">
+                                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="gauge-val" id="circleGaugeVal" cx="60" cy="60" r="50"></circle>
+                            </svg>
+                            <div class="gauge-inner-text">
+                                <span class="gauge-num" id="heroPercentage">95.5%</span>
+                                <span class="gauge-sub">SPAM</span>
+                            </div>
+                        </div>
+
+                        <div class="verdict-summary">
+                            <div class="risk-badge" id="riskBadge">CRITICAL SPAM RISK</div>
+                            <h1 class="verdict-title" id="verdictTitle">SPAM DETECTED</h1>
+                            <p class="verdict-summary-desc" id="verdictSummaryDesc">
+                                Content matches critical spam conditions: high financial promises and lottery cues.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Individual Spam Condition Evaluations -->
+                    <div class="conditions-grid">
+                        <div class="condition-item">
+                            <div class="cond-top">
+                                <span>💰 Financial / Prize Signals</span>
+                                <strong id="scoreFin">90%</strong>
+                            </div>
+                            <div class="cond-bar-bg"><div class="cond-bar-fill" id="barFin"></div></div>
+                        </div>
+
+                        <div class="condition-item">
+                            <div class="cond-top">
+                                <span>⏰ Urgency & Coercion</span>
+                                <strong id="scoreUrg">85%</strong>
+                            </div>
+                            <div class="cond-bar-bg"><div class="cond-bar-fill" id="barUrg"></div></div>
+                        </div>
+
+                        <div class="condition-item">
+                            <div class="cond-top">
+                                <span>🔗 Phishing Links & Contacts</span>
+                                <strong id="scoreLink">0%</strong>
+                            </div>
+                            <div class="cond-bar-bg"><div class="cond-bar-fill" id="barLink"></div></div>
+                        </div>
+
+                        <div class="condition-item">
+                            <div class="cond-top">
+                                <span>🧠 ML Model Probability</span>
+                                <strong id="scoreMl">95.5%</strong>
+                            </div>
+                            <div class="cond-bar-bg"><div class="cond-bar-fill" id="barMl"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Detected Trigger Tokens -->
+                    <div class="analysis-section">
+                        <div class="section-title-row">
+                            <span class="section-title">🚨 Identified Spam Triggers:</span>
+                            <small id="triggersCount">5 detected</small>
+                        </div>
+                        <div class="triggers-cloud" id="triggersCloud">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Spam Rectifier • Multi-Format AI Spam Detection Application</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast for App Installation -->
+    <div id="installToast" class="install-toast hidden">
+        <span class="toast-icon">🚀</span>
+        <span id="toastMsg" class="toast-msg">Spam Rectifier Application Ready!</span>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

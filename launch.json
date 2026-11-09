@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Spam Rectifier Web App",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "env": {
+                "FLASK_ENV": "development",
+                "PYTHONUNBUFFERED": "1",
+                "PYTHONIOENCODING": "utf-8"
+            },
+            "console": "integratedTerminal",
+            "jinja": true,
+            "justMyCode": true
+        }
+    ]
+}
